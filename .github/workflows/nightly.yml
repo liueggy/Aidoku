@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -42,6 +42,7 @@ jobs:
         id: commitinfo
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "sha_full=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: List schemes
         run: |
@@ -72,6 +73,8 @@ jobs:
           mkdir Payload
           cp -R "$APP_PATH" Payload/
           /usr/bin/zip -qry "Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}.ipa" Payload
+          cp "Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}.ipa" Aidoku-iOS-unsigned-latest.ipa
+          shasum -a 256 "Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}.ipa" | tee build-logs/sha256.txt
           ls -lh "Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}.ipa" | tee build-logs/ipa.txt
 
       - name: Upload unsigned IPA artifact
@@ -89,3 +92,27 @@ jobs:
           name: Aidoku-build-logs-${{ steps.commitinfo.outputs.sha_short }}
           path: build-logs
           if-no-files-found: ignore
+
+      - name: Publish unsigned IPA to GitHub Release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: aidoku-unsigned-nightly
+          name: "Aidoku unsigned nightly IPA"
+          body: |
+            Unsigned Aidoku IPA built from this fork.
+
+            - Commit: `${{ steps.commitinfo.outputs.sha_full }}`
+            - Short SHA: `${{ steps.commitinfo.outputs.sha_short }}`
+            - Scheme: `Aidoku (iOS)`
+            - Configuration: `Release`
+            - Code signing: disabled
+
+            This IPA is unsigned. Re-sign it with your own certificate and provisioning profile before installing.
+          files: |
+            Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}.ipa
+            Aidoku-iOS-unsigned-latest.ipa
+            build-logs/sha256.txt
+          prerelease: true
+          make_latest: true
+          overwrite_files: true
