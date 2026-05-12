@@ -1,0 +1,3 @@
+Trigger unsigned Aidoku IPA build.
+
+Commit purpose: start GitHub Actions workflow on main.
