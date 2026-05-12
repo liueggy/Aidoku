@@ -1,33 +1,91 @@
-name: Build and upload nightly ipa
+name: Build unsigned Aidoku IPA
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
+    name: Build unsigned iOS IPA
     runs-on: macos-15
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "26.0"
-      - name: Install Xcode platforms
+
+      - name: Prepare logs and show environment
         run: |
-          xcrun simctl list > /dev/null # fixes next command sometimes failing
-          xcodebuild -downloadPlatform iOS
+          mkdir -p build-logs
+          {
+            sw_vers
+            xcodebuild -version
+            xcode-select -p
+            swift --version
+          } | tee build-logs/environment.txt
+
+      - name: Install iOS platform if needed
+        run: |
+          set -o pipefail
+          xcrun simctl list > /dev/null
+          xcodebuild -downloadPlatform iOS 2>&1 | tee build-logs/download-platform.txt
+
       - name: Get commit SHA
         id: commitinfo
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-      - name: Build
-        run: xcodebuild -scheme "Aidoku (iOS)" -configuration Release archive -archivePath build/Aidoku.xcarchive -skipPackagePluginValidation CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
-      - name: Package ipa
         run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: List schemes
+        run: |
+          set -o pipefail
+          xcodebuild -list -project Aidoku.xcodeproj 2>&1 | tee build-logs/schemes.txt
+
+      - name: Archive unsigned Aidoku iOS app
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Aidoku.xcodeproj \
+            -scheme "Aidoku (iOS)" \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath build/Aidoku.xcarchive \
+            -skipPackagePluginValidation \
+            CODE_SIGN_IDENTITY= \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            archive 2>&1 | tee build-logs/archive.txt
+
+      - name: Package unsigned IPA
+        run: |
+          set -o pipefail
+          APP_PATH="build/Aidoku.xcarchive/Products/Applications/Aidoku.app"
+          test -d "$APP_PATH"
+          rm -rf Payload
           mkdir Payload
-          cp -r build/Aidoku.xcarchive/Products/Applications/Aidoku.app Payload
-          zip -r Aidoku-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa Payload
-      - name: Upload artifacts
+          cp -R "$APP_PATH" Payload/
+          /usr/bin/zip -qry "Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}.ipa" Payload
+          ls -lh "Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}.ipa" | tee build-logs/ipa.txt
+
+      - name: Upload unsigned IPA artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Aidoku-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa
-          path: Aidoku-iOS_nightly-${{ steps.commitinfo.outputs.sha_short }}.ipa
+          name: Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}
+          path: Aidoku-iOS-unsigned-${{ steps.commitinfo.outputs.sha_short }}.ipa
           if-no-files-found: error
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aidoku-build-logs-${{ steps.commitinfo.outputs.sha_short }}
+          path: build-logs
+          if-no-files-found: ignore
