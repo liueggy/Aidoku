@@ -94,7 +94,9 @@ struct PaperMaterialProcessorTests {
     @Test("Legacy catalog loading must produce material in light and dark ambient traits")
     func legacyCatalogPath() throws {
         for ambient in [UIUserInterfaceStyle.light, .dark] {
-            try UITraitCollection(userInterfaceStyle: ambient).performAsCurrent {
+            var captured: Result<Void, Error>?
+            UITraitCollection(userInterfaceStyle: ambient).performAsCurrent {
+                captured = Result {
                 let texture = try #require(UIImage(named: ReaderTextureStyle.kraft.imageName, in: .main,
                     compatibleWith: UITraitCollection(userInterfaceStyle: .light)))
                 print("PAPER_LEGACY ambient=\(ambient.rawValue) cg=\(texture.cgImage != nil) asset=\(texture.imageAsset != nil)")
@@ -103,7 +105,9 @@ struct PaperMaterialProcessorTests {
                 let rgb = try pixel(output)
                 print("PAPER_LEGACY ambient=\(ambient.rawValue) rgb=\(rgb)")
                 #expect(rgb[2] < 230)
+                }
             }
+            try captured?.get()
         }
     }
 
@@ -180,9 +184,10 @@ struct PaperMaterialProcessorTests {
         let cg = try #require(CGImage(width: 8, height: 8, bitsPerComponent: 8, bitsPerPixel: 8,
             bytesPerRow: 8, space: CGColorSpaceCreateDeviceGray(), bitmapInfo: [], provider: provider,
             decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+        let texture = try #require(PaperMaterialProcessor.lightTexture(for: .kraft))
         for protection in [true, false] {
             let output = try #require(PaperMaterialProcessor(style: .kraft, strength: 1, preserveColor: protection)
-                .process(UIImage(cgImage: cg), texture: try #require(PaperMaterialProcessor.lightTexture(for: .kraft))))
+                .process(UIImage(cgImage: cg), texture: texture))
             let rgb = try pixel(output)
             print("PAPER_GRAY protected=\(protection) rgb=\(rgb)")
             #expect(rgb[2] < 230)

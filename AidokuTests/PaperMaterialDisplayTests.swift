@@ -36,6 +36,18 @@ struct PaperMaterialDisplayTests {
         }
     }
 
+    private func assertMaterialPixels(_ image: UIImage) throws {
+        let cg = try #require(image.cgImage)
+        var rgba = [UInt8](repeating: 0, count: 4)
+        let context = try #require(CGContext(data: &rgba, width: 1, height: 1,
+            bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(cg, in: CGRect(x: 0, y: 0, width: cg.width, height: cg.height))
+        print("PAPER_DISPLAY rgb=\(rgba)")
+        #expect(rgba[0] < 250)
+        #expect(rgba[2] < 230)
+    }
+
     private func waitForResult(in view: UIImageView) async throws -> UIImageView {
         for _ in 0..<100 {
             if let overlay = view.subviews.compactMap({ $0 as? UIImageView }).first,
@@ -59,6 +71,7 @@ struct PaperMaterialDisplayTests {
             view.frame = CGRect(x: 0, y: 0, width: 160, height: 240)
             view.layoutIfNeeded()
             let overlay = try await waitForResult(in: view)
+            try assertMaterialPixels(try #require(overlay.image))
             #expect(overlay.bounds == view.bounds)
             #expect(view.image === original)
             #expect(overlay.image != nil)
@@ -78,6 +91,7 @@ struct PaperMaterialDisplayTests {
             let view = try #require(node.view as? UIImageView)
             view.frame = CGRect(x: 0, y: 0, width: 160, height: 240)
             let overlay = try await waitForResult(in: view)
+            try assertMaterialPixels(try #require(overlay.image))
             #expect(view.image === original)
             node.reset()
             await Task.yield()
