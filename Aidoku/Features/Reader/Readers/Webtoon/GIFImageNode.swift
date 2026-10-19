@@ -12,6 +12,8 @@ import VisionKit
 class GIFImageNode: ASControlNode {
     var imageView: GIFImageView?
     var animatedData: Data?
+    private var hasAnimatedSource = false
+    private var paperDisplay: PaperMaterialDisplay?
     var storedInteractions: [UIInteraction] = []
 
     override var contentMode: UIView.ContentMode {
@@ -22,8 +24,8 @@ class GIFImageNode: ASControlNode {
 
     var image: UIImage? {
         didSet {
-            Task { @MainActor in
-                imageView?.image = image
+            Task { @MainActor [weak self] in
+                self?.updateDisplayedImage()
             }
         }
     }
@@ -60,13 +62,23 @@ class GIFImageNode: ASControlNode {
                 self?.storedInteractions = []
             }
             self?.imageView = gifView
+            self?.paperDisplay = PaperMaterialDisplay(imageView: gifView)
+            self?.paperDisplay?.setImage(animated: self?.hasAnimatedSource == true || self?.image?.images != nil)
             return gifView
         }
     }
 
+    @MainActor
+    private func updateDisplayedImage() {
+        imageView?.image = image
+        paperDisplay?.setImage(animated: hasAnimatedSource || image?.images != nil)
+    }
+
     func animate(withGIFData data: Data) {
+        hasAnimatedSource = true
         if let imageView {
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                self?.paperDisplay?.setImage(animated: true)
                 imageView.animate(withGIFData: data)
             }
         } else {
@@ -77,10 +89,12 @@ class GIFImageNode: ASControlNode {
     func reset() {
         image = nil
         animatedData = nil
+        hasAnimatedSource = false
 
-        Task { @MainActor [weak imageView] in
-            imageView?.stopAnimatingGIF()
-            imageView?.image = nil
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.imageView?.stopAnimatingGIF()
+            self.updateDisplayedImage()
         }
     }
 

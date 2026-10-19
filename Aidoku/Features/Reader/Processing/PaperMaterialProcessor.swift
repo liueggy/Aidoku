@@ -30,10 +30,33 @@ struct PaperMaterialProcessor {
         )
     }
 
+    /// Resolve and freeze the light representation before crossing the render queue.
+    /// A catalog UIImage may otherwise retain its dynamic imageAsset.
+    static func lightTexture(for style: ReaderTextureStyle) -> UIImage? {
+        let traits = UITraitCollection(userInterfaceStyle: .light)
+        var result: UIImage?
+        traits.performAsCurrent {
+            guard let asset = UIImage(named: style.imageName, in: .main, compatibleWith: traits),
+                  let cg = (asset.imageAsset?.image(with: traits) ?? asset).cgImage else { return }
+            result = UIImage(cgImage: cg)
+        }
+        return result
+    }
+
+    static func skipReason(for image: UIImage) -> String? {
+        if image.images != nil { return "animated UIImage" }
+        guard let cg = image.cgImage else { return "source has no CGImage" }
+        if cg.width > maximumDimension || cg.height > maximumDimension {
+            return "dimension limit: \(cg.width)x\(cg.height) exceeds \(maximumDimension)"
+        }
+        if cg.width > maximumPixels / max(cg.height, 1) {
+            return "pixel limit: \(cg.width)x\(cg.height) exceeds \(maximumPixels) pixels"
+        }
+        return nil
+    }
+
     static func supports(_ image: UIImage) -> Bool {
-        guard image.images == nil, let cg = image.cgImage else { return false }
-        return cg.width <= maximumDimension && cg.height <= maximumDimension &&
-            cg.width <= maximumPixels / max(cg.height, 1)
+        skipReason(for: image) == nil
     }
 
     // A serial display queue bounds concurrent CPU/GPU work across preloaded pages.
@@ -47,8 +70,18 @@ struct PaperMaterialProcessor {
     private static let context = CIContext(options: [.cacheIntermediates: false])
 
     func process(_ image: UIImage, texture: UIImage) -> UIImage? {
-        guard strength.isFinite, strength > 0, Self.supports(image),
-              let sourceCG = image.cgImage, let textureCG = texture.cgImage else { return nil }
+        guard strength.isFinite, strength > 0 else {
+            NSLog("[PaperMaterial] processor skipped: strength=%@", String(strength))
+            return nil
+        }
+        if let reason = Self.skipReason(for: image) {
+            NSLog("[PaperMaterial] processor skipped: %@", reason)
+            return nil
+        }
+        guard let sourceCG = image.cgImage, let textureCG = texture.cgImage else {
+            NSLog("[PaperMaterial] processor failed: missing source or texture CGImage")
+            return nil
+        }
         let source = CIImage(cgImage: sourceCG)
         let extent = source.extent
         // Fixed source-pixel pitch, never stretch a square texture over a tall webtoon.
@@ -86,7 +119,11 @@ struct PaperMaterialProcessor {
         } else {
             result = multiplied
         }
-        guard let cg = Self.context.createCGImage(result, from: extent) else { return nil }
+        guard let cg = Self.context.createCGImage(result, from: extent) else {
+            NSLog("[PaperMaterial] processor failed: CIContext.createCGImage extent=%@ preserveColor=%@",
+                  NSStringFromCGRect(extent), String(preserveColor))
+            return nil
+        }
         return UIImage(cgImage: cg, scale: image.scale, orientation: image.imageOrientation)
     }
 }

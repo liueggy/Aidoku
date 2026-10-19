@@ -14,6 +14,7 @@ struct ReaderTexturePickerView: View {
     @State private var pageStrength = (UserDefaults.standard.object(forKey: PaperMaterialProcessor.strengthKey) as? NSNumber)?.doubleValue ?? 0.35
     @State private var preserveColor = UserDefaults.standard.object(forKey: PaperMaterialProcessor.preserveColorKey) as? Bool ?? true
     @State private var sample: UIImage?
+    @State private var sampleStatus = ""
     @Environment(\.colorScheme) private var colorScheme
 
     private func image(for style: ReaderTextureStyle) -> UIImage? {
@@ -41,6 +42,13 @@ struct ReaderTexturePickerView: View {
             VStack(alignment: .leading, spacing: 24) {
                 preview
                 materialControls
+                Text(sampleStatus)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("paperMaterial.previewStatus")
+                Text("Pages over 8,000,000 pixels or 32,768 pixels on either axis, animated images and images without CGImage backing use the original image.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 opacitySlider
                 styleGrid
                 Text(NSLocalizedString("READER_TEXTURE_HELP"))
@@ -155,13 +163,30 @@ struct ReaderTexturePickerView: View {
                 .font: UIFont.boldSystemFont(ofSize: 22), .foregroundColor: UIColor.black
             ])
         }
-        guard scope == "pages", let texture = UIImage(named: selectedStyle.imageName, in: .main,
-            compatibleWith: UITraitCollection(userInterfaceStyle: .light)) else {
+        guard scope == "pages" else {
             sample = original
+            sampleStatus = "Preview: background only. Page material is off."
             return
         }
-        sample = PaperMaterialProcessor(style: selectedStyle, strength: pageStrength, preserveColor: preserveColor)
-            .process(original, texture: texture) ?? original
+        guard pageStrength > 0 else {
+            sample = original
+            sampleStatus = "Preview: page strength is zero."
+            return
+        }
+        guard let texture = PaperMaterialProcessor.lightTexture(for: selectedStyle) else {
+            sample = original
+            sampleStatus = "Preview failed: light texture has no decoded CGImage (\(selectedStyle.imageName))."
+            return
+        }
+        let result = PaperMaterialProcessor(style: selectedStyle, strength: pageStrength, preserveColor: preserveColor)
+            .process(original, texture: texture)
+        sample = result ?? original
+        sampleStatus = result == nil
+            ? "Preview failed: Core Image did not render a material image. Original shown."
+            : "Preview rendered: \(selectedStyle.rawValue), \(Int(pageStrength * 100))%, light variant."
+        if !ReaderTextureBackground.isEnabled {
+            sampleStatus += " Reader pages are inactive: select Texture as the reader background."
+        }
     }
 
     // MARK: - 不透明度

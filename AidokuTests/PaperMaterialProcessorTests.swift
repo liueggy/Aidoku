@@ -38,6 +38,18 @@ struct PaperMaterialProcessorTests {
         #expect(output.size == white.size)
     }
 
+    @Test("Color protection must still change neutral white, including the bundled kraft texture")
+    func neutralWhiteWithProtection() throws {
+        let source = image(.white)
+        let processor = PaperMaterialProcessor(style: .kraft, strength: 1, preserveColor: true)
+        let synthetic = try #require(processor.process(source, texture: image(UIColor(white: 0.6, alpha: 1))))
+        #expect(try pixel(synthetic)[0] < 230)
+        let texture = try #require(PaperMaterialProcessor.lightTexture(for: .kraft))
+        let bundled = try #require(processor.process(source, texture: texture))
+        #expect(try pixel(bundled)[0] < 250)
+        #expect(try pixel(bundled)[2] < 245)
+    }
+
     @Test("Color protection preserves saturated artwork")
     func colorProtection() throws {
         let processor = PaperMaterialProcessor(style: .paper, strength: 1, preserveColor: true)

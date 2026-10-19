@@ -50,12 +50,29 @@ final class PaperMaterialDisplay {
         operation = nil
         generation = UUID()
         overlay.image = nil
-        guard !animated, let image = imageView?.image,
-              let processor = PaperMaterialProcessor.current,
-              PaperMaterialProcessor.supports(image),
-              let texture = UIImage(named: processor.style.imageName, in: .main,
-                                    compatibleWith: UITraitCollection(userInterfaceStyle: .light)) else {
-            renderedIdentifier = nil
+        renderedIdentifier = nil
+        guard let image = imageView?.image else { return }
+        guard !animated else {
+            NSLog("[PaperMaterial] skipped: animated source")
+            return
+        }
+        guard let processor = PaperMaterialProcessor.current else {
+            NSLog("[PaperMaterial] inactive: background=%@ scope=%@ strength=%@",
+                  UserDefaults.standard.string(forKey: "Reader.backgroundColor") ?? "unset",
+                  UserDefaults.standard.string(forKey: PaperMaterialProcessor.scopeKey) ?? "background",
+                  String(describing: UserDefaults.standard.object(forKey: PaperMaterialProcessor.strengthKey)))
+            return
+        }
+        guard let reason = PaperMaterialProcessor.skipReason(for: image) else {
+            render(image, processor: processor)
+            return
+        }
+        NSLog("[PaperMaterial] skipped: %@", reason)
+    }
+
+    private func render(_ image: UIImage, processor: PaperMaterialProcessor) {
+        guard let texture = PaperMaterialProcessor.lightTexture(for: processor.style) else {
+            NSLog("[PaperMaterial] failed: light texture has no CGImage: %@", processor.style.imageName)
             return
         }
         // The generation binds this settings identifier to this exact source image.
@@ -69,6 +86,9 @@ final class PaperMaterialDisplay {
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.generation == token else { return }
                 self.overlay.image = result
+                NSLog("[PaperMaterial] %@: %@ overlay=%@ host=%@", result == nil ? "render failed" : "rendered",
+                      identifier, NSStringFromCGRect(self.overlay.frame),
+                      NSStringFromCGRect(self.imageView?.bounds ?? .zero))
                 self.renderedIdentifier = identifier
                 self.operation = nil
             }
