@@ -2,8 +2,6 @@ name: Paper material iOS regression
 
 on:
   workflow_dispatch:
-  push:
-    branches: [feature/reader-paper-material]
 
 jobs:
   pixels:
