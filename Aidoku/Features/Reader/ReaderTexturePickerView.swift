@@ -46,7 +46,7 @@ struct ReaderTexturePickerView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("paperMaterial.previewStatus")
-                Text("Pages over 8,000,000 pixels or 32,768 pixels on either axis, animated images and images without CGImage backing use the original image.")
+                Text(NSLocalizedString("READER_TEXTURE_LIMITS"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 opacitySlider
@@ -165,27 +165,27 @@ struct ReaderTexturePickerView: View {
         }
         guard scope == "pages" else {
             sample = original
-            sampleStatus = "Preview: background only. Page material is off."
+            sampleStatus = NSLocalizedString("READER_TEXTURE_STATUS_BACKGROUND")
             return
         }
         guard pageStrength > 0 else {
             sample = original
-            sampleStatus = "Preview: page strength is zero."
+            sampleStatus = NSLocalizedString("READER_TEXTURE_STATUS_ZERO")
             return
         }
         guard let texture = PaperMaterialProcessor.lightTexture(for: selectedStyle) else {
             sample = original
-            sampleStatus = "Preview failed: light texture has no decoded CGImage (\(selectedStyle.imageName))."
+            sampleStatus = String(format: NSLocalizedString("READER_TEXTURE_STATUS_ASSET"), selectedStyle.imageName)
             return
         }
         let result = PaperMaterialProcessor(style: selectedStyle, strength: pageStrength, preserveColor: preserveColor)
             .process(original, texture: texture)
         sample = result ?? original
         sampleStatus = result == nil
-            ? "Preview failed: Core Image did not render a material image. Original shown."
-            : "Preview rendered: \(selectedStyle.rawValue), \(Int(pageStrength * 100))%, light variant."
+            ? NSLocalizedString("READER_TEXTURE_STATUS_FAILED")
+            : String(format: NSLocalizedString("READER_TEXTURE_STATUS_RENDERED"), selectedStyle.title, Int(pageStrength * 100))
         if !ReaderTextureBackground.isEnabled {
-            sampleStatus += " Reader pages are inactive: select Texture as the reader background."
+            sampleStatus += " " + NSLocalizedString("READER_TEXTURE_STATUS_INACTIVE")
         }
     }
 

@@ -87,8 +87,8 @@ final class PaperMaterialDisplay {
                 guard let self, self.generation == token else { return }
                 self.overlay.image = result
                 NSLog("[PaperMaterial] %@: %@ overlay=%@ host=%@", result == nil ? "render failed" : "rendered",
-                      identifier, NSStringFromCGRect(self.overlay.frame),
-                      NSStringFromCGRect(self.imageView?.bounds ?? .zero))
+                      identifier, String(describing: self.overlay.frame),
+                      String(describing: self.imageView?.bounds ?? .zero))
                 self.renderedIdentifier = identifier
                 self.operation = nil
             }

@@ -899,3 +899,12 @@
 "READER_TEXTURE_PAGE_STRENGTH" = "Page Material Strength";
 
 "READER_TEXTURE_PRESERVE_COLOR" = "Preserve colored artwork";
+
+// Paper material diagnostics
+"READER_TEXTURE_LIMITS" = "Pages over 8,000,000 pixels or 32,768 pixels on either axis, animated images and images without CGImage backing use the original image.";
+"READER_TEXTURE_STATUS_BACKGROUND" = "Preview: background only. Page material is off.";
+"READER_TEXTURE_STATUS_ZERO" = "Preview: page strength is zero.";
+"READER_TEXTURE_STATUS_ASSET" = "Preview failed: light texture has no decoded CGImage (%@).";
+"READER_TEXTURE_STATUS_FAILED" = "Preview failed: Core Image did not render a material image. Original shown.";
+"READER_TEXTURE_STATUS_RENDERED" = "Preview rendered: %@, %ld%%, light variant.";
+"READER_TEXTURE_STATUS_INACTIVE" = "Reader pages are inactive: select Texture as the reader background.";

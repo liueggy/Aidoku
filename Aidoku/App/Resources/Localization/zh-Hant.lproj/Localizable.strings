@@ -776,3 +776,12 @@
 "READER_TEXTURE_PAGE_STRENGTH" = "頁面紙感強度";
 
 "READER_TEXTURE_PRESERVE_COLOR" = "保護彩色畫面";
+
+// Paper material diagnostics
+"READER_TEXTURE_LIMITS" = "超過 800 萬像素、任一邊超過 32,768 像素、動畫或無 CGImage 資料的圖片會顯示原圖。";
+"READER_TEXTURE_STATUS_BACKGROUND" = "預覽：僅背景，頁面材質未啟用。";
+"READER_TEXTURE_STATUS_ZERO" = "預覽：頁面材質強度為零。";
+"READER_TEXTURE_STATUS_ASSET" = "預覽失敗：淺色紋理沒有解碼後的 CGImage（%@）。";
+"READER_TEXTURE_STATUS_FAILED" = "預覽失敗：Core Image 未能產生材質圖片，現顯示原圖。";
+"READER_TEXTURE_STATUS_RENDERED" = "預覽已產生：%@，%ld%%，淺色版本。";
+"READER_TEXTURE_STATUS_INACTIVE" = "閱讀頁面尚未啟用材質：請將閱讀器背景設為紋理。";

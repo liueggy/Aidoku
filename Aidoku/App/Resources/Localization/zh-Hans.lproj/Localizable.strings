@@ -855,3 +855,12 @@
 "READER_TEXTURE_PAGE_STRENGTH" = "页面纸感强度";
 
 "READER_TEXTURE_PRESERVE_COLOR" = "保护彩色画面";
+
+// Paper material diagnostics
+"READER_TEXTURE_LIMITS" = "超过 800 万像素、任一边超过 32,768 像素、动画或无 CGImage 数据的图片会显示原图。";
+"READER_TEXTURE_STATUS_BACKGROUND" = "预览：仅背景，页面材质未启用。";
+"READER_TEXTURE_STATUS_ZERO" = "预览：页面材质强度为零。";
+"READER_TEXTURE_STATUS_ASSET" = "预览失败：浅色纹理没有解码后的 CGImage（%@）。";
+"READER_TEXTURE_STATUS_FAILED" = "预览失败：Core Image 未能生成材质图片，现显示原图。";
+"READER_TEXTURE_STATUS_RENDERED" = "预览已生成：%@，%ld%%，浅色版本。";
+"READER_TEXTURE_STATUS_INACTIVE" = "阅读页面尚未启用材质：请将阅读器背景设为纹理。";

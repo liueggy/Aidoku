@@ -121,7 +121,7 @@ struct PaperMaterialProcessor {
         }
         guard let cg = Self.context.createCGImage(result, from: extent) else {
             NSLog("[PaperMaterial] processor failed: CIContext.createCGImage extent=%@ preserveColor=%@",
-                  NSStringFromCGRect(extent), String(preserveColor))
+                  String(describing: extent), String(preserveColor))
             return nil
         }
         return UIImage(cgImage: cg, scale: image.scale, orientation: image.imageOrientation)
