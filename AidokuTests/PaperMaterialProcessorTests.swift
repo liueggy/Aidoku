@@ -50,6 +50,47 @@ struct PaperMaterialProcessorTests {
         #expect(try pixel(bundled)[2] < 245)
     }
 
+    @Test("White is identical with protection on/off; log rendered RGB for bundled kraft")
+    func whiteProtectionParity() throws {
+        let source = image(.white)
+        let texture = try #require(PaperMaterialProcessor.lightTexture(for: .kraft))
+        let protected = try #require(PaperMaterialProcessor(style: .kraft, strength: 1, preserveColor: true)
+            .process(source, texture: texture))
+        let unprotected = try #require(PaperMaterialProcessor(style: .kraft, strength: 1, preserveColor: false)
+            .process(source, texture: texture))
+        let lhs = try pixel(protected)
+        let rhs = try pixel(unprotected)
+        print("PAPER_RGB kraft white protected=\(lhs) unprotected=\(rhs)")
+        for channel in 0..<3 { #expect(abs(Int(lhs[channel]) - Int(rhs[channel])) <= 2) }
+        #expect(rhs[2] < 230)
+    }
+
+    @Test("Mask branches: black, dark gray, bright gray, white, saturated and pale color")
+    func maskBranches() throws {
+        let texture = image(UIColor(white: 0.5, alpha: 1))
+        let colors: [UIColor] = [.black, UIColor(white: 0.5, alpha: 1),
+                                 UIColor(white: 0.9, alpha: 1), .white, .yellow,
+                                 UIColor(red: 1, green: 0.9, blue: 0.9, alpha: 1)]
+        for (index, color) in colors.enumerated() {
+            let source = image(color)
+            let original = try pixel(source)
+            let protected = try #require(PaperMaterialProcessor(style: .paper, strength: 1, preserveColor: true)
+                .process(source, texture: texture))
+            let unprotected = try #require(PaperMaterialProcessor(style: .paper, strength: 1, preserveColor: false)
+                .process(source, texture: texture))
+            let result = try pixel(protected)
+            let unrestricted = try pixel(unprotected)
+            print("PAPER_RGB branch=\(index) source=\(original) protected=\(result) unprotected=\(unrestricted)")
+            if [0, 1, 4].contains(index) {
+                for channel in 0..<3 { #expect(abs(Int(original[channel]) - Int(result[channel])) <= 3) }
+            } else {
+                #expect(Int(original[0]) - Int(result[0]) > 8)
+            }
+            if index == 5 { #expect(result[0] > unrestricted[0] + 8) }
+            #expect(result[3] == 255)
+        }
+    }
+
     @Test("Color protection preserves saturated artwork")
     func colorProtection() throws {
         let processor = PaperMaterialProcessor(style: .paper, strength: 1, preserveColor: true)
