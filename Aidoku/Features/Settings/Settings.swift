@@ -437,14 +437,27 @@ extension Settings {
                 key: "Reader.backgroundColor",
                 title: NSLocalizedString("READER_BG_COLOR"),
                 value: .select(.init(
-                    values: ["system", "auto", "white", "black"],
+                    values: ["system", "auto", "white", "black", "texture"],
                     titles: [
                         NSLocalizedString("READER_BG_COLOR_SYSTEM"),
                         NSLocalizedString("READER_BG_COLOR_AUTO"),
                         NSLocalizedString("READER_BG_COLOR_WHITE"),
-                        NSLocalizedString("READER_BG_COLOR_BLACK")
+                        NSLocalizedString("READER_BG_COLOR_BLACK"),
+                        NSLocalizedString("READER_BG_COLOR_TEXTURE")
                     ]
                 ))
+            ),
+            .init(
+                key: "Reader.texturePicker",
+                title: NSLocalizedString("READER_TEXTURE_PICKER"),
+                value: .page(.init(items: [
+                    .init(key: "Reader.texturePicker", title: NSLocalizedString("READER_TEXTURE_SCOPE"),
+                          value: .page(.init(items: [], inlineTitle: true))),
+                    .init(key: "Reader.texturePicker", title: NSLocalizedString("READER_TEXTURE_PAGE_STRENGTH"),
+                          value: .page(.init(items: [], inlineTitle: true))),
+                    .init(key: "Reader.texturePicker", title: NSLocalizedString("READER_TEXTURE_PRESERVE_COLOR"),
+                          value: .page(.init(items: [], inlineTitle: true)))
+                ], inlineTitle: true))
             )
         ] + {
             if UIDevice.current.userInterfaceIdiom != .pad {

@@ -830,3 +830,28 @@
 "MIGRATE_WITH_HISTORY" = "迁移并保留历史";
 "AUTO_SCROLL" = "自动滚动";
 "AUTO_SCROLL_SPEED" = "自动滚动速度";
+
+// 阅读器纹理背景
+"READER_BG_COLOR_TEXTURE" = "材质纹理";
+"READER_TEXTURE_PICKER" = "纸感材质";
+"READER_TEXTURE_PREVIEW" = "示例书页预览（非当前漫画）";
+"READER_TEXTURE_OPACITY" = "纹理不透明度";
+"READER_TEXTURE_STYLE" = "纹理样式";
+"READER_TEXTURE_PAPER" = "纸张";
+"READER_TEXTURE_BEIGE" = "米色纸";
+"READER_TEXTURE_KRAFT" = "牛皮纸";
+"READER_TEXTURE_GRUNGE" = "旧纸";
+"READER_TEXTURE_PLASTER" = "灰泥";
+"READER_TEXTURE_WOOD" = "木纹";
+"READER_TEXTURE_FABRIC" = "织物";
+"READER_TEXTURE_HELP" = "选择“纹理”背景后启用。页面始终使用浅色纸张，深色模式也不会变黑。原图、下载和文字识别不受影响。动图及超大页面保留原样。";
+
+"READER_TEXTURE_SCOPE" = "材质应用范围";
+
+"READER_TEXTURE_BACKGROUND_ONLY" = "仅背景";
+
+"READER_TEXTURE_BACKGROUND_PAGES" = "背景和页面";
+
+"READER_TEXTURE_PAGE_STRENGTH" = "页面纸感强度";
+
+"READER_TEXTURE_PRESERVE_COLOR" = "保护彩色画面";

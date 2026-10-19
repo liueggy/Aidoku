@@ -42,7 +42,12 @@ class ZoomableCollectionView: ASDisplayNode {
         super.init()
 
         automaticallyManagesSubnodes = true
+        backgroundColor = .clear
+        isOpaque = false
+        scrollNode.backgroundColor = .clear
+        scrollNode.isOpaque = false
         collectionNode.backgroundColor = .clear
+        collectionNode.isOpaque = false
 
         if let layout = layout as? VerticalContentOffsetPreservingLayout {
             layout.onOffsetPreserved = { [weak self] offset in

@@ -101,6 +101,8 @@ class ReaderPageViewController: BaseObservingViewController {
     }
 
     override func configure() {
+        node.backgroundColor = .clear
+        view.isOpaque = false
         switch type {
             case .info:
                 // info view
@@ -265,7 +267,7 @@ class ReaderPageViewController: BaseObservingViewController {
     func clearPage() {
         page = nil
         pageSet = false
-        pageView?.imageView.image = nil
+        pageView?.replacePageImage(nil)
         zoomView?.zoomEnabled = false
         imageAspectRatio = nil
     }

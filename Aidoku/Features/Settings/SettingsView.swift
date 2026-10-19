@@ -300,7 +300,9 @@ extension SettingsView {
 
     @ViewBuilder
     func pageContentHandler(_ key: String) -> (some View)? {
-        if key == "Library.categories" {
+        if key == "Reader.texturePicker" {
+            ReaderTexturePickerView()
+        } else if key == "Library.categories" {
             CategoriesView(categories: $categoriesOnly)
         } else if key == "Library.filterGroups" {
             FilterGroupsView()

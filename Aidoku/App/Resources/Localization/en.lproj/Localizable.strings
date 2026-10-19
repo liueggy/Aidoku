@@ -874,3 +874,28 @@
 "TOGGLE_BARS" = "Toggle bar visibility";
 "CLOSE_READER" = "Close reader";
 "TOGGLE_PAGE_OFFSET" = "Toggle page offset";
+
+// Reader texture backgrounds
+"READER_BG_COLOR_TEXTURE" = "Texture";
+"READER_TEXTURE_PICKER" = "Paper Material";
+"READER_TEXTURE_PREVIEW" = "Sample page preview (not the current manga)";
+"READER_TEXTURE_OPACITY" = "Texture Opacity";
+"READER_TEXTURE_STYLE" = "Texture Style";
+"READER_TEXTURE_PAPER" = "Paper";
+"READER_TEXTURE_BEIGE" = "Beige Paper";
+"READER_TEXTURE_KRAFT" = "Kraft Paper";
+"READER_TEXTURE_GRUNGE" = "Aged Paper";
+"READER_TEXTURE_PLASTER" = "Plaster";
+"READER_TEXTURE_WOOD" = "Wood";
+"READER_TEXTURE_FABRIC" = "Fabric";
+"READER_TEXTURE_HELP" = "Choose Texture as the reader background to enable. Page material uses light paper even in dark mode. Originals, downloads and OCR are unchanged. Animated and oversized pages are displayed without material.";
+
+"READER_TEXTURE_SCOPE" = "Material Scope";
+
+"READER_TEXTURE_BACKGROUND_ONLY" = "Background only";
+
+"READER_TEXTURE_BACKGROUND_PAGES" = "Background + page";
+
+"READER_TEXTURE_PAGE_STRENGTH" = "Page Material Strength";
+
+"READER_TEXTURE_PRESERVE_COLOR" = "Preserve colored artwork";

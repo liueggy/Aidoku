@@ -46,6 +46,8 @@ class ReaderDoublePageViewController: BaseObservingViewController {
     }
 
     override func configure() {
+        node.backgroundColor = .clear
+        view.isOpaque = false
         updateDoubleTapZoomSetting()
         zoomView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(zoomView)

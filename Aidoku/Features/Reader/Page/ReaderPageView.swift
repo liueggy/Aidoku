@@ -20,6 +20,7 @@ class ReaderPageView: UIView {
     private let temporaryPageStore: ReaderTemporaryPageStore
 
     let imageView = GIFImageView()
+    private lazy var paperDisplay = PaperMaterialDisplay(imageView: imageView)
     let progressView = CircularProgressView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
 
     @available(iOS 16.0, *)
@@ -312,6 +313,17 @@ extension ReaderPageView {
     }
 
     func setPageImage(base64: String, key: Int) async -> Bool {
+        // GIF signatures are ASCII GIF87a/GIF89a. Keep animated source data intact.
+        if base64.hasPrefix("R0lGOD"), let data = Data(base64Encoded: base64), let image = UIImage(data: data) {
+            if let textView {
+                textView.view.removeFromSuperview()
+                textView.didMove(toParent: nil)
+                self.textView = nil
+            }
+            setPageImage(image, gifData: data)
+            progressView.isHidden = true
+            return true
+        }
         // remove text view if it exists
         if let textView {
             textView.view.removeFromSuperview()
@@ -434,7 +446,7 @@ extension ReaderPageView {
     func setPageText(text: String) {
         cancelDictionaryTextAnalysis()
         clearDictionaryOverlays()
-        imageView.image = nil
+        replacePageImage(nil)
         progressView.isHidden = true
 
         let view = MarkdownView(text)
@@ -469,8 +481,15 @@ extension ReaderPageView {
         }
     }
 
-    func setPageImage(_ image: UIImage?, gifData: Data? = nil) {
+    /// Replaces the original image; the paper presentation is an independent child view.
+    func replacePageImage(_ image: UIImage?, animated: Bool = false) {
+        imageView.prepareForReuse()
         imageView.image = image
+        paperDisplay.setImage(animated: animated || image?.images != nil)
+    }
+
+    func setPageImage(_ image: UIImage?, gifData: Data? = nil) {
+        replacePageImage(image, animated: gifData != nil)
         if let gifData {
             imageView.animate(withGIFData: gifData)
         }
@@ -612,7 +631,7 @@ extension ReaderPageView {
         clearCurrentImageCache()
 
         // Clear the current image to show loading state
-        imageView.image = nil
+        replacePageImage(nil)
 
         // Reload the image using the original page data
         return await setPage(currentPage, sourceId: sourceId)

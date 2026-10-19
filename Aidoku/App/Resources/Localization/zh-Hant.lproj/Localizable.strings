@@ -751,3 +751,28 @@
 "MIGRATE_%i_OF_%i" = "遷移 (%i/%i)";
 "SHOW_ENTRY" = "查看作品";
 "TOGGLE_PAGE_OFFSET" = "切換封面單獨顯示";
+
+// 閱讀器紋理背景
+"READER_BG_COLOR_TEXTURE" = "材質紋理";
+"READER_TEXTURE_PICKER" = "紙感材質";
+"READER_TEXTURE_PREVIEW" = "範例書頁預覽（非目前漫畫）";
+"READER_TEXTURE_OPACITY" = "紋理不透明度";
+"READER_TEXTURE_STYLE" = "紋理樣式";
+"READER_TEXTURE_PAPER" = "紙張";
+"READER_TEXTURE_BEIGE" = "米色紙";
+"READER_TEXTURE_KRAFT" = "牛皮紙";
+"READER_TEXTURE_GRUNGE" = "舊紙";
+"READER_TEXTURE_PLASTER" = "灰泥";
+"READER_TEXTURE_WOOD" = "木紋";
+"READER_TEXTURE_FABRIC" = "織物";
+"READER_TEXTURE_HELP" = "選擇「紋理」背景後啟用。頁面始終使用淺色紙張，深色模式也不會變黑。原圖、下載及文字辨識不受影響。動圖及超大頁面保留原樣。";
+
+"READER_TEXTURE_SCOPE" = "材質套用範圍";
+
+"READER_TEXTURE_BACKGROUND_ONLY" = "僅背景";
+
+"READER_TEXTURE_BACKGROUND_PAGES" = "背景和頁面";
+
+"READER_TEXTURE_PAGE_STRENGTH" = "頁面紙感強度";
+
+"READER_TEXTURE_PRESERVE_COLOR" = "保護彩色畫面";

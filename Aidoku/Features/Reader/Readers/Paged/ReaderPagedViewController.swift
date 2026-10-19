@@ -85,6 +85,11 @@ class ReaderPagedViewController: BaseObservingViewController {
     }
 
     override func configure() {
+        // The root reader supplies solid or textured backgrounds.
+        node.backgroundColor = .clear
+        view.isOpaque = false
+        pageViewController.view.backgroundColor = .clear
+        pageViewController.view.isOpaque = false
         pageViewController.delegate = self
         pageViewController.dataSource = self
         add(child: pageViewController)
@@ -674,7 +679,7 @@ extension ReaderPagedViewController {
         controller.onImageisWideImage = nil
         controller.clearPage()
         if let image = stored[0].image {
-            controller.pageView?.imageView.image = image
+            controller.pageView?.replacePageImage(image)
             controller.pageView?.fixImageSize()
         }
         controller.setPage(stored[0], skipProcessing: true)

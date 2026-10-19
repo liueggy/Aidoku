@@ -1,0 +1,79 @@
+{
+  "provider": "ambientCG",
+  "license": "CC0-1.0",
+  "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "providerLicenseURL": "https://docs.ambientcg.com/license/",
+  "processing": "Color maps resized to 1024x1024; light versions saturation/brightness/contrast adjusted; dark versions converted to warm grayscale; JPEG quality 80. Fabric uses the processed file previously named tissue. No third-party app assets are included.",
+  "textures": [
+    {
+      "style": "paper",
+      "asset": "ReaderTexturePaper",
+      "source": "Paper001",
+      "sourceURL": "https://ambientcg.com/view?id=Paper001",
+      "sha256": {
+        "paper_light.jpg": "c746ab5fcfc0a0b643a3be5827d599872b5776104ccb2f29d8bd13264a78e1ac",
+        "paper_dark.jpg": "b82da016dc9a9dabb4a8b13717d7886a2968464ae16ab6841d03e207aba52bc5"
+      }
+    },
+    {
+      "style": "beige",
+      "asset": "ReaderTextureBeige",
+      "source": "Paper006",
+      "sourceURL": "https://ambientcg.com/view?id=Paper006",
+      "sha256": {
+        "beige_light.jpg": "b78291b6257965ce58c30266fef7224e134308c6f161694cd918ab96efdfa95b",
+        "beige_dark.jpg": "0a1821aefe041aaa38dbfa679d9fda2fe66f1372089cae484c3aa8941ecac825"
+      }
+    },
+    {
+      "style": "kraft",
+      "asset": "ReaderTextureKraft",
+      "source": "Paper004",
+      "sourceURL": "https://ambientcg.com/view?id=Paper004",
+      "sha256": {
+        "kraft_light.jpg": "a4365a94b180e1ac3d18659c967528f24cedf6cccf6848843cf3986f7824adc9",
+        "kraft_dark.jpg": "e6b6c9b69167c6d1ab63af23ffef63c9c2f27a238a563625b09113d124fbd6f5"
+      }
+    },
+    {
+      "style": "grunge",
+      "asset": "ReaderTextureGrunge",
+      "source": "Paper003",
+      "sourceURL": "https://ambientcg.com/view?id=Paper003",
+      "sha256": {
+        "grunge_light.jpg": "d8a90b0088c4f96462769cd910002b243c7a9520e504572c837c90c390269459",
+        "grunge_dark.jpg": "8b32b8054021e074ec183af53d0debeb4620e500a04bafe02d89944d2ce84320"
+      }
+    },
+    {
+      "style": "plaster",
+      "asset": "ReaderTexturePlaster",
+      "source": "Plaster006",
+      "sourceURL": "https://ambientcg.com/view?id=Plaster006",
+      "sha256": {
+        "plaster_light.jpg": "7ec4b13f3bbc26b8e601e735c879a76415606798022e47b268f0c5d00f8d9b33",
+        "plaster_dark.jpg": "c8dafd8779610512e025263bb76ddd08d5b0289e659833ebfeb85add1f7dcbd0"
+      }
+    },
+    {
+      "style": "wood",
+      "asset": "ReaderTextureWood",
+      "source": "WoodFloor051",
+      "sourceURL": "https://ambientcg.com/view?id=WoodFloor051",
+      "sha256": {
+        "wood_light.jpg": "865e8d54d5e363d7ee4c05fd6293b7a77e03d635c5453be04943e3becdc39e90",
+        "wood_dark.jpg": "76d20a9ced706c015eed3ab8529433a29b7bbf89d8632dec2fcdebb0cec59686"
+      }
+    },
+    {
+      "style": "fabric",
+      "asset": "ReaderTextureFabric",
+      "source": "Fabric061",
+      "sourceURL": "https://ambientcg.com/view?id=Fabric061",
+      "sha256": {
+        "fabric_light.jpg": "79b330a7fcc90caadb1a3b86976dca74c0cc34f7e6560bb28b6083263016b04a",
+        "fabric_dark.jpg": "71ce7a87c032c3d77791dc0abd3d24357b1edeabdde3776c49ba1268ca355c67"
+      }
+    }
+  ]
+}

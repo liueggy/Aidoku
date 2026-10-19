@@ -328,6 +328,18 @@ class ReaderViewController: BaseObservingViewController {
         addObserver(forName: .readerTapZones) { [weak self] _ in
             self?.updateTapZone()
         }
+        // 材质纹理背景
+        for name in [
+            "Reader.backgroundColor",
+            ReaderTextureBackground.styleKey,
+            ReaderTextureBackground.opacityKey,
+            AppSettings.appearance.appearance.key,
+            AppSettings.appearance.useSystemAppearance.key
+        ] {
+            addObserver(forName: name) { [weak self] _ in
+                self?.updateTextureBackground()
+            }
+        }
         let reloadBlock: (Notification) -> Void = { [weak self] _ in
             guard let self else { return }
             self.reader?.setChapter(self.chapter, startPage: self.currentPage)
@@ -414,6 +426,8 @@ class ReaderViewController: BaseObservingViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
+        updateTextureBackground()
+
         sessionReadPages = [self.currentPage]
         sessionStartDate = Date.now
         sessionLastInteraction = nil
@@ -455,10 +469,18 @@ class ReaderViewController: BaseObservingViewController {
         }
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateTextureBackground()
+        }
+    }
+
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
         coordinator.animate(alongsideTransition: nil) { _ in
+            self.updateTextureBackground()
             if #available(iOS 26.0, *) {
                 self.toolbarViewWidthConstraint?.constant = size.width - 32 - 10
             } else {
@@ -785,6 +807,7 @@ extension ReaderViewController {
         updateAutoScrollButton()
         disableSwipeGestures()
         updateTextThemeOverride()
+        updateTextureBackground()
     }
 
     func updateTextThemeOverride() {
@@ -1567,6 +1590,30 @@ extension ReaderViewController {
         }
     }
 
+    /// 根据当前设置安装 / 移除阅读器「材质纹理」背景。
+    ///
+    /// 纹理层铺在阅读器根视图最底部；分页阅读器会把自身背景设为透明，
+    /// 让纹理从页面间隙透出来。
+    func updateTextureBackground() {
+        guard isViewLoaded else { return }
+        // Text readers retain their own theme; never install comic textures behind them.
+        if reader is ReaderTextViewController || reader is ReaderPagedTextViewController {
+            ReaderTextureBackground.remove(from: view)
+            node.backgroundColor = ReaderTextTheme.getCurrentBackground()
+            return
+        }
+        let textured = ReaderTextureBackground.apply(to: view)
+        if textured || !statusBarHidden {
+            node.backgroundColor = ReaderTextureBackground.fallbackColor
+        } else {
+            node.backgroundColor = switch UserDefaults.standard.string(forKey: "Reader.backgroundColor") {
+                case "system": .systemBackground
+                case "white": .white
+                default: .black
+            }
+        }
+    }
+
     func showBars() {
         guard let navigationController else { return }
 
@@ -1602,15 +1649,8 @@ extension ReaderViewController {
                 if #available(iOS 26.0, *) {
                     (navigationController.value(forKey: "_floatingBarContainerView") as? UIView)?.alpha = 1
                 }
-                self.node.backgroundColor = if AppSettings.appearance.useSystemAppearance.get() {
-                    .systemBackground
-                } else {
-                    if AppSettings.appearance.appearance.get() == 0 {
-                        .white
-                    } else {
-                        .black
-                    }
-                }
+                self.node.backgroundColor = ReaderTextureBackground.fallbackColor
+                self.updateTextureBackground()
                 self.node.layoutIfNeeded()
             }
         }
@@ -1642,6 +1682,7 @@ extension ReaderViewController {
                     default:
                         .black
                 }
+                self.updateTextureBackground()
                 self.node.layoutIfNeeded()
             } completion: { _ in
                 if #available(iOS 27.0, *) {

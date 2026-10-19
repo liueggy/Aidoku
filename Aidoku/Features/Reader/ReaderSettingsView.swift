@@ -309,16 +309,20 @@ extension ReaderSettingsView {
                         key: "Reader.backgroundColor",
                         title: NSLocalizedString("READER_BG_COLOR"),
                         value: .select(.init(
-                            values: ["system", "auto", "white", "black"],
+                            values: ["system", "auto", "white", "black", "texture"],
                             titles: [
                                 NSLocalizedString("READER_BG_COLOR_SYSTEM"),
                                 NSLocalizedString("READER_BG_COLOR_AUTO"),
                                 NSLocalizedString("READER_BG_COLOR_WHITE"),
-                                NSLocalizedString("READER_BG_COLOR_BLACK")
+                                NSLocalizedString("READER_BG_COLOR_BLACK"),
+                                NSLocalizedString("READER_BG_COLOR_TEXTURE")
                             ]
                         ))
                     )
                 )
+                NavigationLink(destination: ReaderTexturePickerView()) {
+                    Text(NSLocalizedString("READER_TEXTURE_PICKER"))
+                }
             }
             if UIDevice.current.userInterfaceIdiom != .pad {
                 SettingView(
