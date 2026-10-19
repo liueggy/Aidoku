@@ -91,6 +91,40 @@ struct PaperMaterialProcessorTests {
         }
     }
 
+    @Test("Legacy catalog loading must produce material in light and dark ambient traits")
+    func legacyCatalogPath() throws {
+        for ambient in [UIUserInterfaceStyle.light, .dark] {
+            try UITraitCollection(userInterfaceStyle: ambient).performAsCurrent {
+                let texture = try #require(UIImage(named: ReaderTextureStyle.kraft.imageName, in: .main,
+                    compatibleWith: UITraitCollection(userInterfaceStyle: .light)))
+                print("PAPER_LEGACY ambient=\(ambient.rawValue) cg=\(texture.cgImage != nil) asset=\(texture.imageAsset != nil)")
+                let output = try #require(PaperMaterialProcessor(style: .kraft, strength: 1, preserveColor: true)
+                    .process(image(.white), texture: texture))
+                let rgb = try pixel(output)
+                print("PAPER_LEGACY ambient=\(ambient.rawValue) rgb=\(rgb)")
+                #expect(rgb[2] < 230)
+            }
+        }
+    }
+
+    @Test("Frozen asset and legacy catalog both render off the main thread")
+    func backgroundCatalogPath() async throws {
+        let source = image(.white)
+        let texture = try #require(UIImage(named: ReaderTextureStyle.kraft.imageName, in: .main,
+            compatibleWith: UITraitCollection(userInterfaceStyle: .light)))
+        let frozen = try #require(PaperMaterialProcessor.lightTexture(for: .kraft))
+        let outputs = await Task.detached {
+            let processor = PaperMaterialProcessor(style: .kraft, strength: 1, preserveColor: true)
+            return [processor.process(source, texture: texture), processor.process(source, texture: frozen)]
+        }.value
+        for (index, output) in outputs.enumerated() {
+            let result = try #require(output)
+            let rgb = try pixel(result)
+            print("PAPER_BACKGROUND path=\(index) rgb=\(rgb)")
+            #expect(rgb[2] < 230)
+        }
+    }
+
     @Test("Color protection preserves saturated artwork")
     func colorProtection() throws {
         let processor = PaperMaterialProcessor(style: .paper, strength: 1, preserveColor: true)
@@ -139,6 +173,22 @@ struct PaperMaterialProcessorTests {
         #expect(!PaperMaterialProcessor.supports(image(.white, size: CGSize(width: 33_000, height: 1))))
     }
 
+    @Test("Grayscale-backed scanned pages receive paper with protection on and off")
+    func grayscaleScan() throws {
+        let bytes = Data(repeating: 255, count: 64)
+        let provider = try #require(CGDataProvider(data: bytes as CFData))
+        let cg = try #require(CGImage(width: 8, height: 8, bitsPerComponent: 8, bitsPerPixel: 8,
+            bytesPerRow: 8, space: CGColorSpaceCreateDeviceGray(), bitmapInfo: [], provider: provider,
+            decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+        for protection in [true, false] {
+            let output = try #require(PaperMaterialProcessor(style: .kraft, strength: 1, preserveColor: protection)
+                .process(UIImage(cgImage: cg), texture: try #require(PaperMaterialProcessor.lightTexture(for: .kraft))))
+            let rgb = try pixel(output)
+            print("PAPER_GRAY protected=\(protection) rgb=\(rgb)")
+            #expect(rgb[2] < 230)
+        }
+    }
+
     @Test("Webtoon texture repeats every 512 source pixels rather than stretching")
     func repeatPitch() throws {
         let format = UIGraphicsImageRendererFormat()
@@ -149,9 +199,11 @@ struct PaperMaterialProcessorTests {
             UIColor.gray.setFill()
             context.fill(CGRect(x: 0, y: 0, width: 8, height: 4))
         }
-        let output = try #require(PaperMaterialProcessor(style: .paper, strength: 1, preserveColor: false)
-            .process(image(.white, size: CGSize(width: 8, height: 1024)), texture: texture))
-        #expect(try pixel(output, y: 64) == pixel(output, y: 576))
-        #expect(try pixel(output, y: 64) != pixel(output, y: 320))
+        for protection in [true, false] {
+            let output = try #require(PaperMaterialProcessor(style: .paper, strength: 1, preserveColor: protection)
+                .process(image(.white, size: CGSize(width: 8, height: 1024)), texture: texture))
+            #expect(try pixel(output, y: 64) == pixel(output, y: 576))
+            #expect(try pixel(output, y: 64) != pixel(output, y: 320))
+        }
     }
 }
