@@ -83,6 +83,18 @@ enum NormalizedExport {
             && !path.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) })
     }
 
+    /// File-backed provider bounds memory and checks cancellation for every ZIPFoundation chunk.
+    private static func add(_ url: URL, to archive: Archive, as path: String) throws {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        let size = try handle.seekToEnd()
+        try archive.addEntry(with: path, type: .file, uncompressedSize: Int64(size)) { position, count in
+            try Task.checkCancellation()
+            try handle.seek(toOffset: UInt64(position))
+            return try handle.read(upToCount: count) ?? Data()
+        }
+    }
+
     private struct File {
         let path: String
         let url: URL?
@@ -92,6 +104,8 @@ enum NormalizedExport {
     static func chapter(source: URL, destination: URL, metadata: String, scratch: URL) throws {
         try Task.checkCancellation()
         let manager = FileManager.default
+        let sourceValues = try source.resourceValues(forKeys: [.isSymbolicLinkKey, .isRegularFileKey, .isDirectoryKey])
+        guard sourceValues.isSymbolicLink != true else { throw ExportError.unsafeInput }
         let archive: Archive?
         let files: [File]
         if source.pathExtension.lowercased() == "cbz" {
@@ -108,7 +122,8 @@ enum NormalizedExport {
                 return File(path: url.lastPathComponent, url: url, entry: nil)
             }
         }
-        let visible = files.filter { !(($0.path as NSString).lastPathComponent.hasPrefix(".")) }
+        let orderedFiles = files.sorted { $0.path < $1.path }
+        let visible = orderedFiles.filter { !(($0.path as NSString).lastPathComponent.hasPrefix(".")) }
         let pages = visible.filter {
             let ext = ($0.path as NSString).pathExtension
             return LocalFileManager.allowedPageExtensions.contains(archive == nil ? ext : ext.lowercased())
@@ -121,13 +136,19 @@ enum NormalizedExport {
         func write(_ file: File, as name: String) throws {
             try Task.checkCancellation()
             if let url = file.url {
-                try output.addEntry(with: name, fileURL: url, compressionMethod: .none)
+                try add(url, to: output, as: name)
             } else if let archive, let entry = file.entry {
-                // CRC checked by ZIPFoundation; only one page is spooled to disk at a time.
+                // ZIPFoundation calculates CRC; compare it before copying the spooled page.
                 try? manager.removeItem(at: transfer)
-                _ = try archive.extract(entry, to: transfer, progress: nil)
-                try Task.checkCancellation()
-                try output.addEntry(with: name, fileURL: transfer, compressionMethod: .none)
+                guard manager.createFile(atPath: transfer.path, contents: nil) else { throw ExportError.unsafeInput }
+                let handle = try FileHandle(forWritingTo: transfer)
+                defer { try? handle.close() }
+                let checksum = try archive.extract(entry) { data in
+                    try Task.checkCancellation()
+                    try handle.write(contentsOf: data)
+                }
+                guard checksum == entry.checksum else { throw ExportError.unsafeInput }
+                try add(transfer, to: output, as: name)
             }
         }
         for (index, page) in pages.enumerated() {
@@ -151,7 +172,7 @@ enum NormalizedExport {
         }
         // Preserve non-page auxiliary files without polluting the root page sequence.
         var used = Set<String>()
-        for file in files where !pages.contains(where: { $0.path == file.path })
+        for file in orderedFiles where !pages.contains(where: { $0.path == file.path })
             && !file.path.hasSuffix("desc.txt") && file.path != xml?.path {
             let ext = (file.path as NSString).pathExtension.lowercased()
             // Nested archives and hidden internal state are deliberately excluded.
@@ -194,7 +215,7 @@ enum NormalizedExport {
                 try Task.checkCancellation()
                 // Outer ZIP write failures abort the entire transaction.
                 if let outer {
-                    try outer.addEntry(with: folder + "/" + name, fileURL: chapterURL, compressionMethod: .none)
+                    try add(chapterURL, to: outer, as: folder + "/" + name)
                     try manager.removeItem(at: chapterURL)
                 } else { single = chapterURL }
                 completed += 1

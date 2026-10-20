@@ -111,7 +111,7 @@ import ZIPFoundation
         let input = root.appendingPathComponent("bad.cbz")
         let zip = try Archive(url: input, accessMode: .create)
         let data = Data([1])
-        try zip.addEntry(with: "../escape.jpg", type: .file, uncompressedSize: 1) { _, _ in data }
+        try zip.addEntry(with: "../escape.jpg", type: .file, uncompressedSize: Int64(data.count)) { _, _ in data }
         #expect(throws: (any Error).self) {
             try NormalizedExport.chapter(source: input, destination: root.appendingPathComponent("out.cbz"), metadata: "", scratch: root)
         }
@@ -120,6 +120,31 @@ import ZIPFoundation
         try FileManager.default.createSymbolicLink(at: raw.appendingPathComponent("1.jpg"), withDestinationURL: input)
         #expect(throws: (any Error).self) {
             try NormalizedExport.chapter(source: raw, destination: root.appendingPathComponent("link.cbz"), metadata: "", scratch: root)
+        }
+    }
+
+    @Test func rejectsSourceSymlinkAndCorruptedCRC() throws {
+        let root = try temporary()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let input = root.appendingPathComponent("source.cbz")
+        do {
+            let zip = try Archive(url: input, accessMode: .create)
+            let bytes = Data([11, 22, 33, 44])
+            try zip.addEntry(with: "1.jpg", type: .file, uncompressedSize: Int64(bytes.count)) { _, _ in bytes }
+        }
+        let link = root.appendingPathComponent("link.cbz")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: input)
+        #expect(throws: (any Error).self) {
+            try NormalizedExport.chapter(source: link, destination: root.appendingPathComponent("link-out.cbz"), metadata: "", scratch: root)
+        }
+        var damaged = try Data(contentsOf: input)
+        // Local file header: 30 fixed bytes followed by filename and extra field.
+        let nameLength = Int(damaged[26]) + Int(damaged[27]) * 256
+        let extraLength = Int(damaged[28]) + Int(damaged[29]) * 256
+        damaged[30 + nameLength + extraLength] ^= 0xff
+        try damaged.write(to: input)
+        #expect(throws: (any Error).self) {
+            try NormalizedExport.chapter(source: input, destination: root.appendingPathComponent("bad-out.cbz"), metadata: "", scratch: root)
         }
     }
 
