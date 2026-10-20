@@ -14,6 +14,7 @@ struct DownloadedMangaView: View {
     @EnvironmentObject private var path: NavigationCoordinator
 
     @State private var openChapter: DownloadedChapterInfo?
+    @StateObject private var exporter = NormalizedExportController()
 
     @Namespace private var transitionNamespace
 
@@ -35,6 +36,29 @@ struct DownloadedMangaView: View {
             }
         }
         .navigationTitle(viewModel.manga.displayTitle)
+        .safeAreaInset(edge: .bottom) {
+            if exporter.running {
+                HStack {
+                    ProgressView(value: Double(exporter.completed), total: Double(max(1, exporter.total)))
+                    Text("\(exporter.completed)/\(exporter.total)").monospacedDigit()
+                    Button(NSLocalizedString("CANCEL")) { exporter.cancel() }
+                }
+                .padding()
+                .background(.regularMaterial)
+            }
+        }
+        .sheet(isPresented: $exporter.showShare, onDismiss: { exporter.cleanup() }) {
+            if let result = exporter.result { NormalizedExportShareSheet(url: result.file) }
+        }
+        .alert(NSLocalizedString("EXPORT_NORMALIZED"), isPresented: $exporter.showMessage) {
+            if exporter.result != nil {
+                Button(NSLocalizedString("SHARE")) { exporter.showShare = true }
+            }
+            Button(NSLocalizedString("CANCEL"), role: .cancel) { exporter.cleanup() }
+        } message: {
+            Text(exporter.message ?? "")
+        }
+        .onDisappear { exporter.cancel() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -58,6 +82,12 @@ struct DownloadedMangaView: View {
 
                     if !viewModel.chapters.isEmpty {
                         Section {
+                            Button {
+                                exporter.start(manga: viewModel.manga, chapters: viewModel.chapters, bundle: true)
+                            } label: {
+                                Label(NSLocalizedString("EXPORT_ALL_NORMALIZED"), systemImage: "square.and.arrow.up")
+                            }
+                            .disabled(exporter.running)
                             Button(role: .destructive, action: viewModel.confirmDeleteAll) {
                                 Label(NSLocalizedString("REMOVE_ALL_DOWNLOADS"), systemImage: "trash")
                             }
@@ -118,10 +148,11 @@ struct DownloadedMangaView: View {
                     .contextMenu {
                         if !chapter.failed {
                             Button {
-                                showShareSheet(chapter: chapter)
+                                exporter.start(manga: viewModel.manga, chapters: [chapter], bundle: false, catalog: viewModel.chapters)
                             } label: {
-                                Label(NSLocalizedString("SHARE"), systemImage: "square.and.arrow.up")
+                                Label(NSLocalizedString("EXPORT_NORMALIZED"), systemImage: "square.and.arrow.up")
                             }
+                            .disabled(exporter.running)
                         }
                     }
                     .matchedTransitionSourcePlease(id: chapter, in: transitionNamespace)

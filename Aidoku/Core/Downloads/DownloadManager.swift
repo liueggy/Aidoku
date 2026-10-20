@@ -155,6 +155,13 @@ actor DownloadManager {
         return URL(string: "shareddocuments://\(path)")
     }
 
+    /// Read-only source lookup for normalized export. Never compresses or renames the cache.
+    nonisolated func normalizedExportSource(for chapter: ChapterIdentifier) -> URL {
+        let directory = cache.directory(for: chapter)
+        let cbz = directory.appendingPathExtension("cbz")
+        return cbz.exists ? cbz : directory
+    }
+
     func getCompressedFile(for chapter: ChapterIdentifier) -> URL? {
         let chapterDirectory = cache.directory(for: chapter)
         let chapterFile = chapterDirectory.appendingPathExtension("cbz")

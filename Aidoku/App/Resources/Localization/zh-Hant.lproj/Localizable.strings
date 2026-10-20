@@ -785,3 +785,10 @@
 "READER_TEXTURE_STATUS_FAILED" = "預覽失敗：Core Image 未能產生材質圖片，現顯示原圖。";
 "READER_TEXTURE_STATUS_RENDERED" = "預覽已產生：%@，%ld%%，淺色版本。";
 "READER_TEXTURE_STATUS_INACTIVE" = "閱讀頁面尚未啟用材質：請將閱讀器背景設為紋理。";
+
+// Normalized export (original bytes)
+"EXPORT_NORMALIZED" = "規範化匯出 CBZ（保留原始檔案）";
+"EXPORT_ALL_NORMALIZED" = "匯出全部已下載章節（ZIP）";
+"EXPORT_SKIPPED" = "已匯出 %ld 章；略過 %ld 個失敗、遺失、無法讀取或不支援的章節。是否分享已完成的章節？";
+"EXPORT_NONE_COMPLETE" = "沒有可匯出的完整章節（略過 %ld 章）。";
+"EXPORT_UNSAFE_INPUT" = "章節為空或包含不安全的檔案。";

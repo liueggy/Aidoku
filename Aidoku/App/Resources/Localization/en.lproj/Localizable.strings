@@ -908,3 +908,10 @@
 "READER_TEXTURE_STATUS_FAILED" = "Preview failed: Core Image did not render a material image. Original shown.";
 "READER_TEXTURE_STATUS_RENDERED" = "Preview rendered: %@, %ld%%, light variant.";
 "READER_TEXTURE_STATUS_INACTIVE" = "Reader pages are inactive: select Texture as the reader background.";
+
+// Normalized export (original bytes)
+"EXPORT_NORMALIZED" = "Export normalized CBZ (original files)";
+"EXPORT_ALL_NORMALIZED" = "Export all downloaded chapters (ZIP)";
+"EXPORT_SKIPPED" = "Exported %ld chapters; skipped %ld failed, missing, unreadable or unsupported chapters. Share the completed chapters?";
+"EXPORT_NONE_COMPLETE" = "No complete chapters could be exported (%ld skipped).";
+"EXPORT_UNSAFE_INPUT" = "The chapter is empty or contains unsafe files.";

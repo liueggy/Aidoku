@@ -1,0 +1,52 @@
+name: Normalized export iOS regression
+
+on:
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: xcode-27
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - name: Discover iOS simulator and destinations
+        run: |
+          xcodebuild -version
+          xcrun simctl list devices available -j > devices.json
+          xcodebuild -scheme Aidoku -showdestinations -skipPackagePluginValidation | tee destinations.txt
+          python3 - <<'PY'
+          import json, os
+          devices = json.load(open('devices.json'))['devices']
+          candidates = [(runtime, device) for runtime, group in devices.items()
+                        if 'iOS' in runtime for device in group
+                        if device.get('isAvailable') and 'iPhone' in device['name']]
+          if not candidates:
+              raise SystemExit('No available iPhone simulator; inspect destinations artifact')
+          runtime, device = sorted(candidates, key=lambda pair: pair[0], reverse=True)[0]
+          print('Selected simulator:', runtime, device['name'], device['udid'])
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('SIMULATOR_ID=' + device['udid'] + '\n')
+          PY
+      - name: Run export, metadata and archive regression tests
+        run: |
+          set -o pipefail
+          xcodebuild test -scheme Aidoku -configuration Debug \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -destination-timeout 180 -skipPackagePluginValidation \
+            -parallel-testing-enabled NO \
+            -only-testing:AidokuTests/NormalizedExportTests \
+            -only-testing:AidokuTests/ComicInfoTests \
+            -only-testing:AidokuTests/ArchiveTests \
+            -resultBundlePath build/NormalizedExport.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log
+      - name: Upload regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: normalized-export-tests-${{ github.sha }}
+          path: |
+            devices.json
+            destinations.txt
+            test.log
+            build/NormalizedExport.xcresult
+          if-no-files-found: warn

@@ -864,3 +864,10 @@
 "READER_TEXTURE_STATUS_FAILED" = "预览失败：Core Image 未能生成材质图片，现显示原图。";
 "READER_TEXTURE_STATUS_RENDERED" = "预览已生成：%@，%ld%%，浅色版本。";
 "READER_TEXTURE_STATUS_INACTIVE" = "阅读页面尚未启用材质：请将阅读器背景设为纹理。";
+
+// Normalized export (original bytes)
+"EXPORT_NORMALIZED" = "规范化导出 CBZ（保留原文件）";
+"EXPORT_ALL_NORMALIZED" = "导出全部已下载章节（ZIP）";
+"EXPORT_SKIPPED" = "已导出 %ld 章；跳过 %ld 个失败、缺失、不可读或不支持的章节。是否分享已完成的章节？";
+"EXPORT_NONE_COMPLETE" = "没有可导出的完整章节（跳过 %ld 章）。";
+"EXPORT_UNSAFE_INPUT" = "章节为空或包含不安全的文件。";
